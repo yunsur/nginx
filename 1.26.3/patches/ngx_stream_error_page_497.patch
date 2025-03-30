@@ -1,0 +1,45 @@
+diff --git a/src/stream/ngx_stream_ssl_module.c b/src/stream/ngx_stream_ssl_module.c
+index 6dee106de..fe13a8c3b 100644
+--- a/src/stream/ngx_stream_ssl_module.c
++++ b/src/stream/ngx_stream_ssl_module.c
+@@ -358,6 +358,40 @@ ngx_stream_ssl_handler(ngx_stream_session_t *s)
+
+         rv = ngx_stream_ssl_init_connection(&sscf->ssl, c);
+
++        if (rv == NGX_ERROR) {
++            ssize_t len = 810;
++            u_char ngx_stream_error_page_497[len];
++
++            ngx_sprintf(
++                ngx_stream_error_page_497,
++                "HTTP/1.1 400 Bad Request" CRLF
++                "Server: nginx" CRLF
++                "Date: %V" CRLF
++                "Content-Type: text/html; charset=utf-8" CRLF
++                "Content-Length: 650" CRLF
++                "Connection: close" CRLF
++                CRLF
++                "<html>" CRLF
++                "<head><title>400 The plain HTTP request was sent to HTTPS port</title></head>" CRLF
++                "<body>" CRLF
++                "<center><h1>400 Bad Request</h1></center>" CRLF
++                "<center>The plain HTTP request was sent to HTTPS port</center>" CRLF
++                "<hr><center>nginx</center>" CRLF
++                "</body>" CRLF
++                "</html>" CRLF
++                "<!-- a padding to disable MSIE and Chrome friendly error page -->" CRLF
++                "<!-- a padding to disable MSIE and Chrome friendly error page -->" CRLF
++                "<!-- a padding to disable MSIE and Chrome friendly error page -->" CRLF
++                "<!-- a padding to disable MSIE and Chrome friendly error page -->" CRLF
++                "<!-- a padding to disable MSIE and Chrome friendly error page -->" CRLF
++                "<!-- a padding to disable MSIE and Chrome friendly error page -->" CRLF,
++                &ngx_cached_http_time);
++
++            if (c->send(c, ngx_stream_error_page_497, len) != len) {
++                ngx_stream_finalize_session(s, NGX_STREAM_BAD_REQUEST);
++            }
++        }
++
+         if (rv != NGX_OK) {
+             return rv;
+         }
